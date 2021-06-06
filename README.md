@@ -8,7 +8,7 @@
 
 ## Require
 
-- [clasp](https://github.com/google/clasp)
+- [clasp](https://github.com/google/clasp#install)
 - tracker.gg のAPI Key
     - https://tracker.gg/developers/docs/getting-started
 - [pixela](https://pixe.la/ja) の グラフを作成
@@ -40,4 +40,9 @@
 
 ## デプロイ
 
-1. git clone 
+`clasp login`は済ませた前提
+
+1. `git clone https://github.com/zztkm/apex-kill-tracker.git`
+1. `clasp create --type standalone`
+1. `clasp push`
+1. 適当にGASのトリガー設定
