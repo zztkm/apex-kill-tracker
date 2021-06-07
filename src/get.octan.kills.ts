@@ -31,16 +31,37 @@ function getLegendData(resBody: any, legend: string): any {
     return legendStats
 }
 
-function postPixela(graphId: string, apiToken: string, kills: string) {
+function getPixela(graphId: string, apiToken: string): string {
+    const date = new Date();
+    date.setDate(date.getDate() - 1)
+    const formatDate = Utilities.formatDate(date, 'Asia/Tokyo', 'yyyyMMdd')
+    const url = `https://pixe.la/v1/users/zztkm/graphs/${graphId}/${formatDate}`
+    const headers = {
+        'X-USER-TOKEN': apiToken
+    };
+    const params: GoogleAppsScript.URL_Fetch.URLFetchRequestOptions = {
+        method: 'get',
+        headers: headers
+    };
+
+    const res = UrlFetchApp.fetch(url, params);
+    return res.getContentText();
+}
+
+function postPixela(graphId: string, apiToken: string, quantity: string, kills: string) {
     const url = `https://pixe.la/v1/users/zztkm/graphs/${graphId}`
     const headers = {
         'X-USER-TOKEN': apiToken
     };
     const date = new Date();
     const formatDate = Utilities.formatDate(date, 'Asia/Tokyo', 'yyyyMMdd')
+    const optionData = {
+        "kills": kills
+    }
     const data = {
         "date": formatDate,
-        "quantity": kills
+        "quantity": quantity,
+        "optionalData": JSON.stringify(optionData)
     }
     const params: GoogleAppsScript.URL_Fetch.URLFetchRequestOptions = {
         method: 'post',
@@ -50,6 +71,7 @@ function postPixela(graphId: string, apiToken: string, kills: string) {
     };
 
     const res = UrlFetchApp.fetch(url, params);
+    Logger.log(res.getContentText())
     return res
 }
 
@@ -65,9 +87,12 @@ function main() {
     const resBody = JSON.parse(response.getContentText());
 
     if (checkHttpStatus(response)) {
+        const beforOctaneKillsData = JSON.parse(getPixela(graphId, pixelaUserToken))
+        const optionalDataObj = JSON.parse(beforOctaneKillsData.optionalData)
         const octaneStats = getLegendData(resBody, legend);
         const octaneKills: string = String(octaneStats.kills.value)
-        const pixelaRes = postPixela(graphId, pixelaUserToken, octaneKills)
+        const quantity = String(octaneStats.kills.value - Number(optionalDataObj.kills))
+        const pixelaRes = postPixela(graphId, pixelaUserToken, quantity, octaneKills)
         Logger.log(octaneStats);
         Logger.log(pixelaRes)
     } else {
